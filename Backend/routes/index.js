@@ -1,34 +1,9 @@
 const express = require('express');
-const Cliente = require('../models/Cliente');
+const Fornecedor = require('../models/Fornecedor');
 const Produto = require('../models/Produto');
+const HistoricoCompra = require('../models/HistoricoCompra');
 
 const router = express.Router();
-
-// CRUD para Clientes
-router.post('/clientes', async (req, res) => {
-  const cliente = await Cliente.create(req.body);
-  res.status(201).json(cliente);
-});
-
-router.get('/clientes', async (req, res) => {
-  const clientes = await Cliente.findAll();
-  res.json(clientes);
-});
-
-router.get('/clientes/:id', async (req, res) => {
-  const cliente = await Cliente.findByPk(req.params.id);
-  res.json(cliente);
-});
-
-router.put('/clientes/:id', async (req, res) => {
-  await Cliente.update(req.body, { where: { id: req.params.id } });
-  res.status(204).send();
-});
-
-router.delete('/clientes/:id', async (req, res) => {
-  await Cliente.destroy({ where: { id: req.params.id } });
-  res.status(204).send();
-});
 
 // CRUD para Produtos
 router.post('/produtos', async (req, res) => {
@@ -54,6 +29,30 @@ router.put('/produtos/:id', async (req, res) => {
 router.delete('/produtos/:id', async (req, res) => {
   await Produto.destroy({ where: { id: req.params.id } });
   res.status(204).send();
+});
+
+router.post('/fornecedor', async (req, res) => {
+  const { nome, cnpj } = req.body;
+  const fornecedor = await Fornecedor.create({ nome, cnpj });
+  res.json(fornecedor);
+});
+
+router.post('/historico-compra', async (req, res) => {
+  const { quantidade, dataCompra, produtoId, fornecedorId } = req.body;
+  const historicoCompra = await HistoricoCompra.create({
+    quantidade,
+    dataCompra,
+    ProdutoId: produtoId,
+    FornecedorId: fornecedorId
+  });
+  res.json(historicoCompra);
+});
+
+router.get('/historico-compra', async (req, res) => {
+  const historicoCompras = await HistoricoCompra.findAll({
+    include: [Produto, Fornecedor]
+  });
+  res.json(historicoCompras);
 });
 
 // Relacionamento: Consultar Produtos de um Cliente
