@@ -1,28 +1,42 @@
 import React, { useEffect, useState } from 'react';
-import api from '../services/api';
+import axios from 'axios';
 
 const HistoricoCompras = () => {
   const [historico, setHistorico] = useState([]);
 
   useEffect(() => {
-    const fetchHistorico = async () => {
-      const response = await api.get('/historico-compra');
-      setHistorico(response.data);
-    };
-
-    fetchHistorico();
+    axios.get('http://localhost:3000/historico-compras')
+      .then((response) => {
+        setHistorico(response.data);
+      })
+      .catch((error) => {
+        console.error('Erro ao buscar o histórico:', error);
+      });
   }, []);
 
   return (
     <div>
       <h1>Histórico de Compras</h1>
-      <ul>
-        {historico.map(item => (
-          <li key={item.id}>
-            {item.Produto.nome} - {item.Quantidade} unidades compradas de {item.Fornecedor.nome} em {item.dataCompra}
-          </li>
-        ))}
-      </ul>
+      <table>
+        <thead>
+          <tr>
+            <th>Produto</th>
+            <th>Fornecedor</th>
+            <th>Quantidade</th>
+            <th>Data da Compra</th>
+          </tr>
+        </thead>
+        <tbody>
+          {historico.map((item) => (
+            <tr key={item.id}>
+              <td>{item.produto.nome}</td>
+              <td>{item.fornecedor.nome}</td>
+              <td>{item.quantidade}</td>
+              <td>{new Date(item.dataCompra).toLocaleDateString()}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 };

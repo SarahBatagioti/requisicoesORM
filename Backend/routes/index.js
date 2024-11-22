@@ -1,9 +1,34 @@
 const express = require('express');
-const Fornecedor = require('../models/Fornecedor');
+const Cliente = require('../models/Cliente');
 const Produto = require('../models/Produto');
-const HistoricoCompra = require('../models/HistoricoCompra');
-
+const HistoricoCompras = require('../models/HistoricoCompra')
 const router = express.Router();
+
+// CRUD para Clientes
+router.post('/clientes', async (req, res) => {
+  const cliente = await Cliente.create(req.body);
+  res.status(201).json(cliente);
+});
+
+router.get('/clientes', async (req, res) => {
+  const clientes = await Cliente.findAll();
+  res.json(clientes);
+});
+
+router.get('/clientes/:id', async (req, res) => {
+  const cliente = await Cliente.findByPk(req.params.id);
+  res.json(cliente);
+});
+
+router.put('/clientes/:id', async (req, res) => {
+  await Cliente.update(req.body, { where: { id: req.params.id } });
+  res.status(204).send();
+});
+
+router.delete('/clientes/:id', async (req, res) => {
+  await Cliente.destroy({ where: { id: req.params.id } });
+  res.status(204).send();
+});
 
 // CRUD para Produtos
 router.post('/produtos', async (req, res) => {
@@ -31,28 +56,23 @@ router.delete('/produtos/:id', async (req, res) => {
   res.status(204).send();
 });
 
-router.post('/fornecedor', async (req, res) => {
-  const { nome, cnpj } = req.body;
-  const fornecedor = await Fornecedor.create({ nome, cnpj });
-  res.json(fornecedor);
-});
-
-router.post('/historico-compra', async (req, res) => {
-  const { quantidade, dataCompra, produtoId, fornecedorId } = req.body;
-  const historicoCompra = await HistoricoCompra.create({
+// Criar um histórico de compras
+router.post('/historico-compras', async (req, res) => {
+  const { quantidade, produtoId, fornecedorId } = req.body;
+  const historico = await HistoricoCompras.create({
     quantidade,
-    dataCompra,
-    ProdutoId: produtoId,
-    FornecedorId: fornecedorId
+    produtoId,
+    fornecedorId,
   });
-  res.json(historicoCompra);
+  res.status(201).json(historico);
 });
 
-router.get('/historico-compra', async (req, res) => {
-  const historicoCompras = await HistoricoCompra.findAll({
-    include: [Produto, Fornecedor]
+// Listar histórico de compras
+router.get('/historico-compras', async (req, res) => {
+  const historicos = await HistoricoCompras.findAll({
+    include: [Produto, Fornecedor],
   });
-  res.json(historicoCompras);
+  res.json(historicos);
 });
 
 // Relacionamento: Consultar Produtos de um Cliente
@@ -62,6 +82,4 @@ router.get('/clientes/:id/produtos', async (req, res) => {
   });
   res.json(cliente.produtos);
 });
-
 module.exports = router;
-

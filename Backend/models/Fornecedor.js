@@ -1,16 +1,17 @@
-const { DataTypes } = require('sequelize');
+const { Model, DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
-const Fornecedor = sequelize.define('Fornecedor', {
+class Fornecedor extends Model { }
+
+Fornecedor.init({
   nome: {
     type: DataTypes.STRING,
-    allowNull: false
-  },
-  cnpj: {
-    type: DataTypes.STRING,
     allowNull: false,
-    unique: true
-  }
-});
+  },
+  contato: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+}, { sequelize, modelName: 'fornecedor' });
 
 module.exports = Fornecedor;
