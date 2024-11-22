@@ -1,7 +1,9 @@
 const express = require('express');
 const Cliente = require('../models/Cliente');
 const Produto = require('../models/Produto');
-const HistoricoCompras = require('../models/HistoricoCompra')
+const Fornecedor = require('../models/Fornecedor');
+const Venda = require('../models/Venda');
+
 const router = express.Router();
 
 // CRUD para Clientes
@@ -56,23 +58,85 @@ router.delete('/produtos/:id', async (req, res) => {
   res.status(204).send();
 });
 
-// Criar um histórico de compras
-router.post('/historico-compras', async (req, res) => {
-  const { quantidade, produtoId, fornecedorId } = req.body;
-  const historico = await HistoricoCompras.create({
-    quantidade,
-    produtoId,
-    fornecedorId,
-  });
-  res.status(201).json(historico);
+// CRUD de Fornecedores
+router.post('/fornecedores', async (req, res) => {
+  const fornecedores = await Fornecedor.create(req.body);
+  res.status(201).json(fornecedores);
 });
 
-// Listar histórico de compras
-router.get('/historico-compras', async (req, res) => {
-  const historicos = await HistoricoCompras.findAll({
-    include: [Produto, Fornecedor],
-  });
-  res.json(historicos);
+router.get('/fornecedores', async (req, res) => {
+  const fornecedores = await Fornecedor.findAll();
+  res.json(fornecedores);
+});
+
+router.get('/fornecedores/:id', async (req, res) => {
+  const fornecedore = await Fornecedor.findByPk(req.params.id);
+  res.json(fornecedore);
+});
+
+// Create e Read da Venda
+router.post('/venda', async (req, res) => {
+  const vendas = await Venda.create(req.body);
+  res.status(201).json(vendas);
+});
+
+router.get('/venda', async (req, res) => {
+  try {
+    // Buscar todas as vendas com os relacionamentos
+    const vendas = await Venda.findAll({
+      include: [
+        { model: Produto, include: [Fornecedor] },
+        { model: Cliente }
+      ]
+    });
+
+    // Agrupar vendas por cliente
+    const historicoPorCliente = vendas.reduce((acc, venda) => {
+      const clienteId = venda.cliente.id;
+
+      if (!acc[clienteId]) {
+        acc[clienteId] = {
+          cliente: venda.cliente.nome,
+          compras: [],
+        };
+      }
+
+      acc[clienteId].compras.push({
+        produto: venda.produto.nome,
+        preco: venda.produto.preco,
+        fornecedor: venda.produto.fornecedor.nome,
+        data: venda.createdAt,
+      });
+
+      return acc;
+    }, {});
+
+    router.get('/clientes/:id/produtos', async (req, res) => {
+      try {
+        const cliente = await Cliente.findByPk(req.params.id, {
+          include: {
+            model: Produto, // Modelo associado
+            through: { attributes: [] }, // Evita dados extras da tabela de junção
+          },
+        });
+
+        if (!cliente) {
+          return res.status(404).json({ error: 'Cliente não encontrado' });
+        }
+
+        res.json(cliente.Produtos); // Retorna os produtos do cliente
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Erro ao buscar produtos do cliente' });
+      }
+    });
+
+    // Retornar o histórico agrupado
+    res.json(Object.values(historicoPorCliente));
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Erro ao buscar vendas.' });
+  }
 });
 
 // Relacionamento: Consultar Produtos de um Cliente
@@ -82,4 +146,5 @@ router.get('/clientes/:id/produtos', async (req, res) => {
   });
   res.json(cliente.produtos);
 });
+
 module.exports = router;

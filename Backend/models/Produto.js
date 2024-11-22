@@ -1,22 +1,32 @@
-const { Model, DataTypes } = require('sequelize'); // Importar Model e DataTypes
-const sequelize = require('../config/database'); // Importar a instância do Sequelize
-const Cliente = require('./Cliente'); // Importar o modelo Cliente
+const { Model, DataTypes } = require('sequelize');
+const sequelize = require('../config/database');
+const Fornecedor = require('./Fornecedor'); // Import the Fornecedor model
 
 class Produto extends Model {}
 
-Produto.init({
-  nome: {
-    type: DataTypes.STRING,
-    allowNull: false,
+Produto.init(
+  {
+    nome: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    preco: {
+      type: DataTypes.FLOAT,
+      allowNull: false,
+    },
+    fornecedorId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: Fornecedor,
+        key: 'id',
+      },
+    },
   },
-  preco: {
-    type: DataTypes.FLOAT,
-    allowNull: false,
-  },
-}, { sequelize, modelName: 'produto' });
+  { sequelize, modelName: 'produto' }
+);
 
-// Definindo o relacionamento um para muitos
-Cliente.hasMany(Produto); // Um cliente tem muitos produtos
-Produto.belongsTo(Cliente); // Cada produto pertence a um cliente
+Produto.belongsTo(Fornecedor, { foreignKey: 'fornecedorId' });
+Fornecedor.hasMany(Produto, { foreignKey: 'fornecedorId' });
 
 module.exports = Produto;
