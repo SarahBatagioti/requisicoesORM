@@ -74,6 +74,11 @@ router.get('/fornecedores/:id', async (req, res) => {
   res.json(fornecedore);
 });
 
+router.delete('/fornecedores/:id', async (req, res) => {
+  await Fornecedor.destroy({ where: { id: req.params.id } });
+  res.status(204).send();
+});
+
 // Create e Read da Venda
 router.post('/venda', async (req, res) => {
   const vendas = await Venda.create(req.body);
@@ -137,6 +142,11 @@ router.get('/venda', async (req, res) => {
     console.error(error);
     res.status(500).json({ error: 'Erro ao buscar vendas.' });
   }
+});
+
+router.delete('/venda/:id', async (req, res) => {
+  await Venda.destroy({ where: { id: req.params.id } });
+  res.status(204).send();
 });
 
 // Relacionamento: Consultar Produtos de um Cliente

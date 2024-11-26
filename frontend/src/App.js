@@ -28,7 +28,6 @@ const App = () => {
       console.error(error);
     }
   };
-  
 
   useEffect(() => {
     fetchData('fornecedores', 'fornecedores');
@@ -44,11 +43,11 @@ const App = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
-  
+
       if (!response.ok) {
         throw new Error('Erro ao fazer a requisição');
       }
-  
+
       // Atualiza os dados após o POST bem-sucedido
       if (method === 'POST' && endpoint === 'venda') {
         fetchData('venda', 'vendas'); // Atualiza as vendas
@@ -59,8 +58,61 @@ const App = () => {
       console.error(error);
       alert('Erro ao realizar a operação.');
     }
-  };  
+  };
 
+  const handleDeleteClient = async (clientId) => {
+    try {
+      const response = await fetch(`http://localhost:3000/api/clientes/${clientId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao excluir cliente');
+      }
+
+      // Atualiza a lista de clientes após exclusão
+      fetchData('clientes', 'clientes');
+    } catch (error) {
+      console.error(error);
+      alert('Erro ao excluir cliente');
+    }
+  };
+
+  const handleDeleteSupplier = async (supplierId) => {
+    try {
+      const response = await fetch(`http://localhost:3000/api/fornecedores/${supplierId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao excluir fornecedor');
+      }
+
+      // Atualiza a lista de fornecedores após exclusão
+      fetchData('fornecedores', 'fornecedores');
+    } catch (error) {
+      console.error(error);
+      alert('Erro ao excluir fornecedor');
+    }
+  };
+
+  const handleDeleteProduct = async (productId) => {
+    try {
+      const response = await fetch(`http://localhost:3000/api/produtos/${productId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao excluir produto');
+      }
+
+      // Atualiza a lista de produtos após exclusão
+      fetchData('produtos', 'produtos');
+    } catch (error) {
+      console.error(error);
+      alert('Erro ao excluir produto');
+    }
+  };
 
   return (
     <div>
@@ -93,7 +145,10 @@ const App = () => {
             </form>
             <ul>
               {data.fornecedores.map((f) => (
-                <li key={f.id}>{f.nome}</li>
+                <li key={f.id}>
+                  {f.nome}{' '}
+                  <button onClick={() => handleDeleteSupplier(f.id)}>Excluir</button>
+                </li>
               ))}
             </ul>
           </div>
@@ -143,7 +198,8 @@ const App = () => {
             <ul>
               {data.produtos.map((p) => (
                 <li key={p.id}>
-                  {p.nome} - R$ {p.preco.toFixed(2)}
+                  {p.nome} - R$ {p.preco.toFixed(2)}{' '}
+                  <button onClick={() => handleDeleteProduct(p.id)}>Excluir</button>
                 </li>
               ))}
             </ul>
@@ -170,7 +226,10 @@ const App = () => {
             </form>
             <ul>
               {data.clientes.map((c) => (
-                <li key={c.id}>{c.nome}</li>
+                <li key={c.id}>
+                  {c.nome}{' '}
+                  <button onClick={() => handleDeleteClient(c.id)}>Excluir</button>
+                </li>
               ))}
             </ul>
           </div>
@@ -233,11 +292,14 @@ const App = () => {
               {data.vendas?.map((cliente) => (
                 <div key={cliente.cliente}>
                   <h4>Cliente: {cliente.cliente}</h4>
+
                   <ul>
                     {cliente.compras.map((compra, index) => (
                       <li key={index}>
-                        Produto: {compra.produto}, Preço: {compra.preco}, Fornecedor: {compra.fornecedor},
-                        Compra feita em: {new Date(compra.data).toLocaleDateString()}
+                        Produto: {compra.produto}<br />
+                        Preço: R$ {compra.preco}<br />
+                        Fornecedor: {compra.fornecedor}<br />
+                        Compra feita em: {new Date(compra.data).toLocaleDateString()}<br /><br />
                       </li>
                     ))}
                   </ul>
